@@ -35,7 +35,7 @@ class Game:
 
         found = 0
         for i in range(self.pins):
-            if reference[i] == guess[i]:
+            if reference[i] == proposal[i]:
                 found += 1
                 proposal[i] = 'x'
                 reference[i] = 'x'
@@ -44,18 +44,23 @@ class Game:
         for i in range(self.pins):
             if proposal[i] != 'x':
                 for j in range(self.pins):
-                    if reference[j] == proposal[i]:
+                    if reference[j] != 'x' and reference[j] == proposal[i]:
                         close += 1
                         proposal[i] = 'x'
                         reference[j] = 'x'
+                        j = self.pins
 
-        print(self.solution, guess, reference, proposal, found, close)
+        assert(found <= self.pins)
+        assert(close <= self.pins)
+        assert(found + close <= self.pins)
+
+        #print(self.guess_line, self.solution, guess, reference, proposal, found, close)
 
         self.scores[self.guess_line] = [found, close]
         self.board[self.guess_line] = [guess[i] for i in range(self.pins)]
         self.guess_line += 1
 
-        return True
+        return (found == 5)
 
 
     def new_game(self):
