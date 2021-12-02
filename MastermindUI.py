@@ -11,6 +11,74 @@ from Game import Game
 
 class MainWindow(Gtk.ApplicationWindow):
 
+    pin_colors = [
+        [0.0, 0.0, 0.0],  # Black (deep gray)
+        [1.0, 1.0, 1.0],  # White
+        [1.0, 0.0, 0.0],  # Red
+        [1.0, 1.0, 0.0],  # Yellow
+        [0.0, 1.0, 0.0],  # Green
+        [0.4, 0.2, 0.0],  # Brown
+        [0.0, 0.0, 1.0],  # Blue
+        [1.0, 0.5, 1.0]   # Weird
+    ]
+
+
+    ############# Graphics --------------------------------------------------------#####################
+
+    def draw_pin(self, cr, x, y, radius, color = (255/255, 128/255, 64/255)):
+        #cairo_pattern_t *pat;
+
+        (r,g,b) = color
+
+        if r+g+b == 0.0:
+            cr.set_source_rgb(1.0, 1.0, 1.0)
+        else:
+            cr.set_source_rgb(0.0, 0.0, 0.0)
+        cr.fill_preserve()
+        cr.arc(x, y, radius-1, 0, 2 * math.pi)
+        cr.fill()
+
+        pat = cairo.RadialGradient(x, y, radius, x - radius/3, y - radius/3, radius/4)
+        if r+g+b == 0.0:
+            pat.add_color_stop_rgba(0, r, g, b, 1)
+            pat.add_color_stop_rgba(1, r, g, b, 0.5)
+        else:
+            pat.add_color_stop_rgba(0, r, g, b, 0.5)
+            pat.add_color_stop_rgba(1, r, g, b, 1)
+
+        cr.set_source(pat)
+        cr.arc(x, y, radius, 0, 2 * math.pi)
+        cr.fill()
+
+
+    def draw_rectangle(self, cr, x, y, width, height, aspect = 1.0):
+        
+        def inner_draw_rectangle(x, y, bg, r, g, b, a):
+            corner_radius = 4
+            radius = corner_radius / aspect
+            degrees = math.pi / 180.0
+
+            cr.new_sub_path()
+            cr.arc(x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees)
+            cr.arc(x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees)
+            cr.arc(x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees)
+            cr.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees)
+            cr.close_path()
+
+            if bg:
+                cr.set_source_rgb(0.6, 0.3, 0.2)
+                #cr.set_source_rgb(204/255, 102/255, 0)
+            cr.fill_preserve()
+            cr.set_source_rgba(r, g, b, a)
+            #cr.set_source_rgba(153/255, 76/255, 0, 0.75)
+            cr.set_line_width(2.0)
+            cr.stroke()
+
+        inner_draw_rectangle(x, y, True, 0.9, 0.9, 0.2, 0.25)
+        inner_draw_rectangle(x+1, y+1, False, 0.7, 0.4, 0.2, 0.5)
+
+
+    ############# Events --------------------------------------------------------#####################
 
     def on_delete_event(self, *args):
         d = Gtk.MessageDialog(transient_for=self, modal=True,
@@ -30,27 +98,6 @@ class MainWindow(Gtk.ApplicationWindow):
         return True
 
     
-    def draw_pin(self, cr, x, y, radius, color = (255/255, 128/255, 64/255)):
-        #cairo_pattern_t *pat;
-
-        (r,g,b) = color
-
-        cr.set_source_rgb(0.0, 0.0, 0.0)
-        cr.fill_preserve()
-        cr.arc(x, y, radius-1, 0, 2 * math.pi)
-        cr.fill()
-
-        pat = cairo.RadialGradient(x, y, radius, x - radius/4, y - radius/4, radius/4)
-        pat.add_color_stop_rgba(0, r, g, b, 0.8)
-        pat.add_color_stop_rgba(1, r, g, b, 1)
-
-        cr.set_source(pat)
-        cr.arc(x, y, radius, 0, 2 * math.pi)
-        cr.fill()
-
-        #pat.destroy()
-
-
     def on_pins_draw(self, dar, cr):
 
         for y in range(3):
@@ -89,50 +136,12 @@ class MainWindow(Gtk.ApplicationWindow):
 
             self.dar_pins.queue_draw()
 
-        '''
-        elif event.type == Gdk.EventType.MOTION_NOTIFY:
-            print("drag&drop")
-        '''
-
         pass
 
 
-    pin_colors = [
-        [0.0, 0.0, 0.0],  # Black
-        [1.0, 1.0, 1.0],  # White
-        [1.0, 0.0, 0.0],  # Red
-        [1.0, 1.0, 0.0],  # Yellow
-        [0.0, 1.0, 0.0],  # Green
-        [0.4, 0.2, 0.0],  # Brown
-        [0.0, 0.0, 1.0],  # Blue
-        [0.5, 0.5, 1.0]   # Weird
-    ]
-
     def on_board_draw(self, dar, cr):
 
-        def draw_rectangle(cr, x, y, width, height, aspect=1.0):
-            
-            corner_radius = 8
-            radius = corner_radius / aspect
-            degrees = math.pi / 180.0
-
-            cr.new_sub_path()
-            cr.arc(x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees)
-            cr.arc(x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees)
-            cr.arc(x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees)
-            cr.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees)
-            cr.close_path()
-
-            cr.set_source_rgb(204/255, 102/255, 0)
-            cr.fill_preserve()
-            cr.set_source_rgba(153/255, 76/255, 0, 0.75)
-            cr.set_line_width(3.0)
-            cr.stroke()
-
-        def draw_slot(cr, x, y, width, height, aspect=1.0):
-            draw_rectangle(cr, x, y, width, height, aspect)
-
-        draw_rectangle(cr, 5, 5, 368, 790)
+        self.draw_rectangle(cr, 5, 5, 368, 790)
 
         for row in range(12):
 
@@ -149,7 +158,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                 px = 20 + slot * 16
                 py = 728 - row * 56 + 12
-                draw_slot(cr, px, py, 8, 8, 1.2)
+                self.draw_rectangle(cr, px, py, 8, 8, 1.2)
 
                 if sb > 0:
                     self.draw_pin(cr, px+4, py+4, 6, self.pin_colors[0])
@@ -160,7 +169,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
                 sx = 120 + slot * 48
                 sy = 728 - row * 56
-                draw_slot(cr, sx, sy, 40, 40)
+                self.draw_rectangle(cr, sx, sy, 40, 40)
 
                 if line[slot] != 'x':
                     self.draw_pin(cr, sx+20, sy+20, 18, self.pin_colors[int(line[slot])])
@@ -170,17 +179,20 @@ class MainWindow(Gtk.ApplicationWindow):
             solution = self.game.get_solution()
             for slot in range(5):
                 sx = 120 + slot * 48
-                draw_slot(cr, sx, 40, 40, 40)
+                self.draw_rectangle(cr, sx, 40, 40, 40)
 
                 if solution[slot] != 'x':
                     self.draw_pin(cr, sx+20, 60, 18, self.pin_colors[int(solution[slot])])
         else:
-            draw_slot(cr, 116, 32, 5 * 48 + 4, 56)
+            self.draw_rectangle(cr, 116, 32, 5 * 48 + 4, 56)
         
         pass
 
 
     def on_board_event(self, box, event):
+
+        if not self.game_in_progress:
+            return False
 
         if event.type == Gdk.EventType.BUTTON_PRESS:
             mx = int(event.x)
@@ -202,7 +214,7 @@ class MainWindow(Gtk.ApplicationWindow):
                             self.current_guess[slot] = str(self.selected_color)
                             self.dar_board.queue_draw()
 
-        pass
+        return True
 
 
     def on_btn_solution_clicked(self, *args):
@@ -218,13 +230,24 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
     def on_btn_validate_clicked(self, *args):
-        self.game.submit(self.current_guess)
+
+        if 'x' in self.current_guess:
+            return
+
+        found = self.game.submit(self.current_guess)
         self.current_line = self.game.get_guess_line()
         self.current_guess = ['x' for i in range(5)]
-        self.dar_board.queue_draw()
-        if self.current_line >= 12:
-            print('game_over')
+
+        if found:
+            self.game_in_progress = False
+            self.on_btn_solution_clicked(args)
+        elif self.current_line >= 12:
+            self.game_in_progress = False
             self.current_line = 12
+            self.on_btn_solution_clicked(args)
+        else:
+            self.dar_board.queue_draw()
+
         pass
 
 
@@ -245,6 +268,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.selected_color = -1
         self.current_guess = ['x' for i in range(5)]
         self.current_line = 0
+        self.game_in_progress = True
         self.dar_pins.queue_draw()
         self.dar_board.queue_draw()
 
