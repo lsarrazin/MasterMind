@@ -7,6 +7,7 @@ class Game:
     colors = 8
 
     def __init__(self):
+        random.seed()
         self.new_game()
 
     

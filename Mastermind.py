@@ -1,9 +1,8 @@
-import sys
-from typing import KeysView
-
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, Gtk
+
+import sys
 
 from MastermindUI import MainWindow
 
@@ -33,10 +32,9 @@ class MasterMind(Gtk.Application):
     def do_command_line(self, command_line):
         ''' No real command line '''
         self.activate()
-        return 0        
+        return 0
 
 
 if __name__ == '__main__':
     app = MasterMind()
     app.run(sys.argv)
-    

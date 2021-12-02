@@ -4,7 +4,6 @@ from gi.repository import Gtk, Gdk
 
 import cairo
 import math
-import random
 
 from Game import Game
 
@@ -67,11 +66,9 @@ class MainWindow(Gtk.ApplicationWindow):
 
             if bg:
                 cr.set_source_rgb(0.6, 0.3, 0.2)
-                #cr.set_source_rgb(204/255, 102/255, 0)
             cr.fill_preserve()
             cr.set_source_rgba(r, g, b, a)
-            #cr.set_source_rgba(153/255, 76/255, 0, 0.75)
-            cr.set_line_width(2.0)
+            cr.set_line_width(3.0)
             cr.stroke()
 
         inner_draw_rectangle(x, y, True, 0.9, 0.9, 0.2, 0.25)
