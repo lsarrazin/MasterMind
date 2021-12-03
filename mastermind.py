@@ -1,15 +1,26 @@
+'''
+Mastermind Game
+
+This module is the game main module, providing the application class, and starting it.
+To run :
+
+python3 mastermind.py
+'''
+
+import sys
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, Gtk
 
-import sys
-
-from MastermindUI import MainWindow
+from mastermind_ui import MainWindow
 
 
 class MasterMind(Gtk.Application):
+    ''' MasterMind application class '''
 
     def __init__(self, *args, **kwargs):
+        ''' Application class constructor '''
         super().__init__(
             *args,
             application_id="github.lsarrazin.MasterMind",
@@ -20,6 +31,7 @@ class MasterMind(Gtk.Application):
 
 
     def do_startup(self):
+        ''' Start the application'''
         Gtk.Application.do_startup(self)
 
 
