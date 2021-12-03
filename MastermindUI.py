@@ -1,14 +1,18 @@
+import math
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
 import cairo
-import math
 
 from Game import Game
 
 
 class MainWindow(Gtk.ApplicationWindow):
+    '''
+    Main window of the application
+    '''
 
     pin_colors = [
         [0.0, 0.0, 0.0],  # Black (deep gray)
@@ -24,8 +28,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     ############# Graphics --------------------------------------------------------#####################
 
-    def draw_pin(self, cr, x, y, radius, color = (255/255, 128/255, 64/255)):
-        #cairo_pattern_t *pat;
+    def draw_pin(self, cr, x, y, radius, color = (1.0, 0.5, 0.25)):
 
         (r,g,b) = color
 
@@ -51,6 +54,17 @@ class MainWindow(Gtk.ApplicationWindow):
 
 
     def draw_rectangle(self, cr, x, y, width, height, aspect = 1.0):
+        '''
+        Draw a rectangle to materialize a pin location (can also be used for full board)
+        
+        Parameters:
+            cr (cairo): Cairo context where to draw
+            x (int): 
+            y (int):
+
+        Returns:
+            no return       
+        '''
         
         def inner_draw_rectangle(x, y, bg, r, g, b, a):
             corner_radius = 4
@@ -77,6 +91,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     ############# Events --------------------------------------------------------#####################
 
+
     def on_delete_event(self, *args):
         d = Gtk.MessageDialog(transient_for=self, modal=True,
                               buttons=Gtk.ButtonsType.OK_CANCEL)
@@ -86,9 +101,9 @@ class MainWindow(Gtk.ApplicationWindow):
 
         if response == Gtk.ResponseType.OK:
             return self.on_destroy()
-
-        pass
-
+        else:
+            return False
+        
 
     def on_destroy(self, *args):
         self.app.quit()
@@ -136,9 +151,9 @@ class MainWindow(Gtk.ApplicationWindow):
         pass
 
 
-    def on_board_draw(self, dar, cr):
+    def on_board_draw(self, dar, cairo_context):
 
-        self.draw_rectangle(cr, 5, 5, 368, 790)
+        self.draw_rectangle(cairo_context, 5, 5, 368, 790)
 
         for row in range(12):
 
@@ -155,33 +170,33 @@ class MainWindow(Gtk.ApplicationWindow):
 
                 px = 20 + slot * 16
                 py = 728 - row * 56 + 12
-                self.draw_rectangle(cr, px, py, 8, 8, 1.2)
+                self.draw_rectangle(cairo_context, px, py, 8, 8, 1.2)
 
                 if sb > 0:
-                    self.draw_pin(cr, px+4, py+4, 6, self.pin_colors[0])
+                    self.draw_pin(cairo_context, px+4, py+4, 6, self.pin_colors[0])
                     sb -= 1
                 elif sw > 0:
-                    self.draw_pin(cr, px+4, py+4, 6, self.pin_colors[1])
+                    self.draw_pin(cairo_context, px+4, py+4, 6, self.pin_colors[1])
                     sw -= 1
 
                 sx = 120 + slot * 48
                 sy = 728 - row * 56
-                self.draw_rectangle(cr, sx, sy, 40, 40)
+                self.draw_rectangle(cairo_context, sx, sy, 40, 40)
 
                 if line[slot] != 'x':
-                    self.draw_pin(cr, sx+20, sy+20, 18, self.pin_colors[int(line[slot])])
+                    self.draw_pin(cairo_context, sx+20, sy+20, 18, self.pin_colors[int(line[slot])])
 
 
         if self.show_solution:
             solution = self.game.get_solution()
             for slot in range(5):
                 sx = 120 + slot * 48
-                self.draw_rectangle(cr, sx, 40, 40, 40)
+                self.draw_rectangle(cairo_context, sx, 40, 40, 40)
 
                 if solution[slot] != 'x':
-                    self.draw_pin(cr, sx+20, 60, 18, self.pin_colors[int(solution[slot])])
+                    self.draw_pin(cairo_context, sx+20, 60, 18, self.pin_colors[int(solution[slot])])
         else:
-            self.draw_rectangle(cr, 116, 32, 5 * 48 + 4, 56)
+            self.draw_rectangle(cairo_context, 116, 32, 5 * 48 + 4, 56)
         
         pass
 
@@ -217,13 +232,11 @@ class MainWindow(Gtk.ApplicationWindow):
     def on_btn_solution_clicked(self, *args):
         self.show_solution = not self.show_solution
         self.dar_board.queue_draw()
-        pass
 
 
     def on_btn_reset_clicked(self, *args):
         self.current_guess = ['x' for i in range(5)]
         self.dar_board.queue_draw()
-        pass
 
 
     def on_btn_validate_clicked(self, *args):
@@ -245,15 +258,13 @@ class MainWindow(Gtk.ApplicationWindow):
         else:
             self.dar_board.queue_draw()
 
-        pass
-
 
     def on_mnu_new_clicked(self, *args):
-        d = Gtk.MessageDialog(transient_for=self, modal=True,
+        dialog = Gtk.MessageDialog(transient_for=self, modal=True,
                               buttons=Gtk.ButtonsType.OK_CANCEL)
-        d.props.text = 'Are you sure you want to restart a new game?'
-        response = d.run()
-        d.destroy()
+        dialog.props.text = 'Are you sure you want to restart a new game?'
+        response = dialog.run()
+        dialog.destroy()
 
         if response == Gtk.ResponseType.OK:
             self.new_game()
@@ -273,6 +284,12 @@ class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = self.props.application
+
+        self.selected_color = -1
+        self.current_line = 0
+        self.current_guess = ['x' for i in range(5)]
+        self.game_in_progress = False
+        self.show_solution = False
 
         builder = Gtk.Builder()
         builder.add_from_file("MastermindUI.glade")

@@ -2,4 +2,4 @@
 MasterMind game in python and GTK
 
 ## Download source then run
-'''python3 Mastermind.py'''
+```python3 Mastermind.py```
