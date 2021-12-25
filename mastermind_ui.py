@@ -287,7 +287,11 @@ class MainWindow(Gtk.ApplicationWindow):
                 for slot in range(5):
                     square = self.compute_color_pin_square(self.current_line, slot)
                     if self.inside_square(square, mouse_x, mouse_y):
-                        self.current_guess[slot] = str(self.selected_color)
+                        if str(self.selected_color) == self.current_guess[slot]:
+                            # Zero slot
+                            self.current_guess[slot] = 'x'
+                        else:
+                            self.current_guess[slot] = str(self.selected_color)
                         self.dar_board.queue_draw()
 
 
@@ -347,11 +351,13 @@ class MainWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
         self.app = self.props.application
 
+        """
         self.selected_color = -1
         self.current_line = 0
         self.current_guess = ['x' for i in range(5)]
         self.game_in_progress = False
         self.show_solution = False
+        """
 
         builder = Gtk.Builder()
         builder.add_from_file("MastermindUI.glade")
