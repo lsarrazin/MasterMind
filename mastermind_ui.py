@@ -351,14 +351,6 @@ class MainWindow(Gtk.ApplicationWindow):
         super().__init__(*args, **kwargs)
         self.app = self.props.application
 
-        """
-        self.selected_color = -1
-        self.current_line = 0
-        self.current_guess = ['x' for i in range(5)]
-        self.game_in_progress = False
-        self.show_solution = False
-        """
-
         builder = Gtk.Builder()
         builder.add_from_file("MastermindUI.glade")
 
